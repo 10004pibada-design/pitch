@@ -1,407 +1,1201 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>나만의 구구단 놀이</title>
-    <style>
-        body {
-            font-family: 'Malgun Gothic', sans-serif;
-            text-align: center;
-            background-color: #f0f8ff;
-            margin: 0;
-            padding: 10px;
-            touch-action: manipulation;
-        }
-        h1 { font-size: 24px; color: #333; margin-bottom: 5px; }
-        #progress-text { font-size: 14px; color: #666; margin-bottom: 15px; font-weight: bold; }
-        
-        .stage-container {
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: center;
-            gap: 5px;
-            margin-bottom: 20px;
-        }
-        .stage-btn {
-            padding: 10px 15px;
-            font-size: 16px;
-            background-color: #add8e6;
-            border: none;
-            border-radius: 10px;
-            cursor: pointer;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        }
-        .stage-btn.active { background-color: #ffb6c1; font-weight: bold; }
-        .review-btn { background-color: #ffd700; }
-        .review-btn.active { background-color: #ff8c00; color: white; }
-        .parent-btn { background-color: #e6e6fa; width: 100%; margin-top: 5px; }
-        
-        /* 메인 학습 영역 */
-        #learning-section { display: block; }
-        
-        #question-area {
-            font-size: 40px;
-            font-weight: bold;
-            margin: 20px 0;
-            color: #4a4a4a;
-        }
-        
-        #hint-area {
-            min-height: 100px;
-            margin: 10px auto;
-            padding: 10px;
-            background: #fff;
-            border-radius: 10px;
-            width: 90%;
-            max-width: 300px;
-            box-shadow: inset 0 0 5px rgba(0,0,0,0.1);
-            display: none;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-        }
-        
-        .dot-row { display: flex; justify-content: center; margin: 2px 0; }
-        .dot { width: 15px; height: 15px; background-color: #ff6b6b; border-radius: 50%; margin: 0 2px; }
-        .hint-text { font-size: 14px; color: #555; margin-top: 10px; }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#ffe3f1">
+<title>구구단 놀이 🚀 | 나만의 구구단</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Jua&family=Gowun+Dodum&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --pink:#ff8fb1;
+    --pink-deep:#f26b95;
+    --blue:#63c1ff;
+    --yellow:#ffd166;
+    --green:#54d98c;
+    --purple:#b39ddb;
+    --ink:#4a3f55;
+    --ink-soft:#7d7288;
+    --card:#ffffff;
+    --shadow:0 6px 0 rgba(0,0,0,.10), 0 10px 24px rgba(120,90,150,.13);
+    --radius:22px;
+  }
+  *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+  html,body{height:100%;}
+  body{
+    margin:0;
+    font-family:'Gowun Dodum','Malgun Gothic','Apple SD Gothic Neo',sans-serif;
+    color:var(--ink);
+    background:
+      radial-gradient(circle at 12% 8%, #ffe9f4 0%, transparent 42%),
+      radial-gradient(circle at 88% 4%, #e4f3ff 0%, transparent 40%),
+      radial-gradient(circle at 50% 100%, #fff6dd 0%, transparent 55%),
+      #fbf7ff;
+    background-attachment:fixed;
+    min-height:100%;
+    padding:14px 12px 40px;
+    touch-action:manipulation;
+    overflow-x:hidden;
+  }
+  h1,h2,h3,button,.num-btn,.stage-btn,.display{font-family:'Jua','Gowun Dodum','Malgun Gothic',sans-serif; font-weight:400;}
 
-        .numpad {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 10px;
-            max-width: 300px;
-            margin: 0 auto;
-        }
-        .num-btn {
-            background-color: #fff;
-            border: 2px solid #ddd;
-            border-radius: 15px;
-            font-size: 24px;
-            padding: 15px 0;
-            cursor: pointer;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
-        }
-        .num-btn:active { background-color: #e0e0e0; transform: translateY(2px); }
-        .btn-action { background-color: #ffd700; border-color: #e5c100; }
-        
-        #message { font-size: 18px; font-weight: bold; height: 25px; margin-top: 10px; }
+  .app{max-width:520px; margin:0 auto;}
 
-        /* 부모님 확인 영역 */
-        #parent-section { display: none; margin-top: 20px; }
-        table { width: 100%; max-width: 350px; margin: 0 auto; border-collapse: collapse; background: #fff; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
-        th, td { padding: 10px; border: 1px solid #ddd; text-align: center; font-size: 14px; }
-        th { background-color: #f2f2f2; }
-        .close-btn { margin-top: 20px; padding: 10px 20px; background-color: #ffb6c1; border: none; border-radius: 10px; cursor: pointer; font-weight: bold; }
-        .clear-btn { margin-top: 20px; padding: 10px 20px; background-color: #ff6b6b; color: white; border: none; border-radius: 10px; cursor: pointer; font-weight: bold; margin-left: 10px; }
-    </style>
+  /* ---------- 상단 ---------- */
+  .topbar{display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:6px;}
+  .topbar h1{
+    font-size:26px; margin:0; letter-spacing:-.5px;
+    background:linear-gradient(90deg,#ff7aa8,#ff9f5a 45%,#4fb8ff);
+    -webkit-background-clip:text; background-clip:text; color:transparent;
+  }
+  .icon-btn{
+    border:none; background:#fff; width:44px; height:44px; border-radius:50%;
+    font-size:20px; cursor:pointer; box-shadow:0 3px 0 rgba(0,0,0,.08); transition:transform .12s;
+  }
+  .icon-btn:active{transform:translateY(2px); box-shadow:none;}
+  .icon-btn.off{opacity:.45;}
+
+  /* ---------- 공통 카드 ---------- */
+  .card{
+    background:var(--card); border-radius:var(--radius); padding:16px;
+    box-shadow:var(--shadow); margin-bottom:14px;
+  }
+
+  /* ---------- 마스코트 ---------- */
+  .mascot-row{display:flex; align-items:center; gap:12px; margin-bottom:14px;}
+  .mascot{font-size:44px; line-height:1; flex:0 0 auto; animation:float 2.6s ease-in-out infinite;}
+  @keyframes float{0%,100%{transform:translateY(0) rotate(-3deg);}50%{transform:translateY(-7px) rotate(3deg);}}
+  .bubble{
+    position:relative; background:#fff; border-radius:18px; padding:12px 14px;
+    box-shadow:var(--shadow); font-size:16px; line-height:1.45; flex:1 1 auto; min-height:52px;
+    display:flex; align-items:center;
+  }
+  .bubble::before{
+    content:''; position:absolute; left:-8px; top:50%; transform:translateY(-50%) rotate(45deg);
+    width:16px; height:16px; background:#fff; border-radius:4px;
+  }
+
+  /* ---------- 단 선택 ---------- */
+  .section-title{font-size:17px; margin:0 0 10px; color:var(--ink-soft); display:flex; align-items:center; gap:6px;}
+  .stage-grid{display:grid; grid-template-columns:repeat(4,1fr); gap:10px;}
+  .stage-btn{
+    border:none; border-radius:18px; padding:14px 4px; font-size:19px; color:#fff;
+    cursor:pointer; box-shadow:0 5px 0 rgba(0,0,0,.14); transition:transform .1s, box-shadow .1s;
+    position:relative;
+  }
+  .stage-btn:active{transform:translateY(4px); box-shadow:0 1px 0 rgba(0,0,0,.14);}
+  .stage-btn.done::after{content:'⭐'; position:absolute; top:-6px; right:-4px; font-size:15px;}
+  .wide-btn{
+    border:none; border-radius:18px; padding:15px 12px; font-size:17px; color:#fff; cursor:pointer;
+    box-shadow:0 5px 0 rgba(0,0,0,.14); transition:transform .1s, box-shadow .1s; width:100%;
+    display:flex; align-items:center; justify-content:center; gap:8px; margin-top:10px;
+  }
+  .wide-btn:active{transform:translateY(4px); box-shadow:0 1px 0 rgba(0,0,0,.14);}
+  .review-btn{background:linear-gradient(135deg,#ffcf4d,#ff9f1c); color:#5b3d00;}
+  .parent-btn{background:linear-gradient(135deg,#cbb7f5,#9d8ae8);}
+
+  .mini-stats{display:flex; gap:8px; margin-top:12px;}
+  .mini-stat{
+    flex:1; background:linear-gradient(160deg,#fff7fb,#f2f8ff); border-radius:16px; padding:10px 8px;
+    text-align:center; border:2px dashed #eddff7;
+  }
+  .mini-stat b{display:block; font-family:'Jua',sans-serif; font-size:22px; color:var(--pink-deep); line-height:1.2;}
+  .mini-stat span{font-size:12px; color:var(--ink-soft);}
+
+  /* ---------- 학습 화면 ---------- */
+  .game-head{display:flex; align-items:center; justify-content:space-between; gap:8px; margin-bottom:10px;}
+  .dan-badge{
+    font-family:'Jua',sans-serif; font-size:16px; padding:6px 14px; border-radius:999px;
+    background:var(--pink); color:#fff; box-shadow:0 3px 0 rgba(0,0,0,.12);
+  }
+  .back-btn{
+    border:none; background:#fff; color:var(--ink-soft); font-size:14px; padding:8px 12px;
+    border-radius:999px; cursor:pointer; box-shadow:0 3px 0 rgba(0,0,0,.08); font-family:'Jua',sans-serif;
+  }
+  .back-btn:active{transform:translateY(2px); box-shadow:none;}
+
+  .progress-track{height:14px; background:#f0e9f8; border-radius:999px; overflow:hidden; margin-bottom:4px;}
+  .progress-fill{height:100%; width:0%; border-radius:999px; background:linear-gradient(90deg,#ffa5c8,#ffd166,#7ee0a8); transition:width .35s;}
+  .progress-label{font-size:13px; color:var(--ink-soft); text-align:right;}
+
+  #question-area{
+    font-family:'Jua',sans-serif; font-size:clamp(38px,13vw,54px); margin:14px 0 4px; text-align:center;
+    letter-spacing:1px; line-height:1.1;
+  }
+  #question-area .blank{
+    display:inline-block; min-width:86px; padding:0 6px; margin-left:6px;
+    border-bottom:6px solid var(--pink); color:var(--pink-deep);
+  }
+  #question-area.ok{animation:pop .35s ease;}
+  #question-area.bad{animation:shake .4s ease;}
+  @keyframes pop{0%{transform:scale(1);}45%{transform:scale(1.14);}100%{transform:scale(1);}}
+  @keyframes shake{0%,100%{transform:translateX(0);}20%{transform:translateX(-9px);}45%{transform:translateX(8px);}70%{transform:translateX(-5px);}}
+
+  #hint-area{
+    display:none; flex-direction:column; gap:10px; background:linear-gradient(170deg,#fffdf5,#f4f9ff);
+    border:2px dashed #ffd9a8; border-radius:var(--radius); padding:14px; margin:6px 0 12px;
+  }
+  #hint-area.show{display:flex; animation:fadeUp .3s ease;}
+  @keyframes fadeUp{from{opacity:0; transform:translateY(8px);}to{opacity:1; transform:translateY(0);}}
+  .hint-head{font-family:'Jua',sans-serif; font-size:16px; color:#e08a2b;}
+  .dot-row{display:flex; justify-content:center; align-items:center; gap:4px; margin:3px 0;}
+  .dot{width:14px; height:14px; border-radius:50%; background:var(--pink); box-shadow:inset 0 -2px 0 rgba(0,0,0,.08);}
+  .dot.g5{background:var(--blue);}
+  .dot-row .rowtag{font-size:12px; color:var(--ink-soft); width:34px; text-align:left;}
+  .skip-list{display:flex; flex-wrap:wrap; gap:6px; justify-content:center;}
+  .skip-chip{
+    background:#fff; border:2px solid #dfe9ff; border-radius:12px; padding:6px 10px;
+    font-family:'Jua',sans-serif; font-size:16px; color:#4a7fd0;
+  }
+  .skip-chip.next{border-color:var(--pink); color:var(--pink-deep); border-style:dashed;}
+  .strategy{font-size:15px; line-height:1.6; color:#5a4a33;}
+  .strategy b{color:#e0642b;}
+  .read-aloud{
+    text-align:center; font-family:'Jua',sans-serif; font-size:20px; color:#7a4fd0;
+    background:#f3ecff; border-radius:14px; padding:10px;
+  }
+
+  .numpad{display:grid; grid-template-columns:repeat(3,1fr); gap:9px; margin-top:4px;}
+  .num-btn{
+    background:#fff; border:3px solid #efe6fa; border-radius:18px; font-size:26px; padding:12px 0;
+    cursor:pointer; box-shadow:0 5px 0 #e7dcf5; transition:transform .08s, box-shadow .08s; color:var(--ink);
+  }
+  .num-btn:active{transform:translateY(4px); box-shadow:0 1px 0 #e7dcf5; background:#faf6ff;}
+  .num-btn.action{background:#fff4d6; border-color:#ffe1a1; box-shadow:0 5px 0 #ffe1a1; font-size:20px;}
+  .num-btn.go{background:linear-gradient(135deg,#7ee0a8,#42c47c); color:#fff; border-color:#42c47c; box-shadow:0 5px 0 #339b60; font-size:22px;}
+  .num-btn.go:active{box-shadow:0 1px 0 #339b60;}
+
+  #message{font-size:17px; text-align:center; min-height:26px; margin-top:12px; font-family:'Jua',sans-serif;}
+  #message.good{color:#2fae63;}
+  #message.bad{color:#e8637d;}
+
+  /* ---------- 부모님 화면 ---------- */
+  .tabs{display:flex; gap:6px; margin-bottom:12px;}
+  .tab{
+    flex:1; border:none; background:#f2ecfa; color:var(--ink-soft); padding:11px 6px; border-radius:14px;
+    font-family:'Jua',sans-serif; font-size:15px; cursor:pointer;
+  }
+  .tab.active{background:var(--purple); color:#fff; box-shadow:0 3px 0 rgba(0,0,0,.12);}
+  table{width:100%; border-collapse:collapse; font-size:14px; background:#fff; border-radius:14px; overflow:hidden;}
+  th,td{padding:9px 6px; border-bottom:1px solid #f1ecf8; text-align:center;}
+  th{background:#faf6ff; color:var(--ink-soft); font-weight:400; font-size:13px;}
+  tbody tr:last-child td{border-bottom:none;}
+  .empty{padding:26px 10px; text-align:center; color:var(--ink-soft); font-size:14px; line-height:1.6;}
+  .bar{height:9px; background:#f1ecf8; border-radius:999px; overflow:hidden; margin-top:5px;}
+  .bar > i{display:block; height:100%; background:linear-gradient(90deg,#ffb0c9,#ff7aa8); border-radius:999px;}
+  .rank{font-family:'Jua',sans-serif; color:var(--pink-deep);}
+  .summary-grid{display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin-bottom:12px;}
+  .summary-grid div{background:#faf6ff; border-radius:14px; padding:10px 6px; text-align:center;}
+  .summary-grid b{display:block; font-family:'Jua',sans-serif; font-size:20px; color:var(--pink-deep);}
+  .summary-grid span{font-size:12px; color:var(--ink-soft);}
+  .row-actions{display:flex; flex-wrap:wrap; gap:8px; margin-top:14px;}
+  .small-btn{
+    flex:1 1 46%; border:none; border-radius:14px; padding:12px 8px; font-family:'Jua',sans-serif;
+    font-size:14px; cursor:pointer; background:#eef4ff; color:#3b6fb5;
+  }
+  .small-btn.danger{background:#ffeef1; color:#d9526e;}
+  .note{font-size:12px; color:var(--ink-soft); line-height:1.6; margin-top:12px; background:#faf9ff; border-radius:12px; padding:10px;}
+
+  /* ---------- 축하 ---------- */
+  #confetti{position:fixed; inset:0; pointer-events:none; z-index:99;}
+  .hidden{display:none !important;}
+  .star-line{font-size:30px; text-align:center; letter-spacing:6px; margin:6px 0;}
+  .center{text-align:center;}
+  .badge-line{display:flex; gap:8px; justify-content:center; flex-wrap:wrap; margin-top:10px;}
+  .badge-line button{
+    border:none; border-radius:14px; padding:12px 18px; font-family:'Jua',sans-serif; font-size:16px;
+    cursor:pointer; box-shadow:0 4px 0 rgba(0,0,0,.12); background:var(--pink); color:#fff;
+  }
+  .badge-line button.ghost{background:#fff; color:var(--ink-soft);}
+</style>
 </head>
 <body>
+<div class="app">
 
+  <div class="topbar">
     <h1>구구단 놀이 🚀</h1>
-    <div id="progress-text">단원을 선택해서 10문제를 풀어보자!</div>
-    
-    <div class="stage-container" id="stages">
-        <button class="stage-btn" onclick="setStage(5)">5단</button>
-        <button class="stage-btn" onclick="setStage(2)">2단</button>
-        <button class="stage-btn" onclick="setStage(3)">3단</button>
-        <button class="stage-btn" onclick="setStage(9)">9단</button>
-        <button class="stage-btn" onclick="setStage(4)">4단</button>
-        <button class="stage-btn" onclick="setStage(6)">6단</button>
-        <button class="stage-btn" onclick="setStage(8)">8단</button>
-        <button class="stage-btn" onclick="setStage(7)">7단</button>
-        <button class="stage-btn review-btn" id="review-btn" onclick="startReview()">오답 모아풀기</button>
-        <button class="stage-btn parent-btn" onclick="toggleParentMenu()">📊 부모님 메뉴 (학습 기록 보기)</button>
+    <div style="display:flex; gap:8px;">
+      <button class="icon-btn" id="sound-toggle" title="소리 켜기/끄기" aria-label="소리 켜기/끄기">🔊</button>
+    </div>
+  </div>
+
+  <!-- ===== 홈 화면 ===== -->
+  <section id="home-screen">
+    <div class="mascot-row">
+      <div class="mascot">🦊</div>
+      <div class="bubble" id="home-bubble">안녕! 오늘도 구구단 놀이하러 왔구나? 몇 단을 연습해 볼까?</div>
     </div>
 
-    <!-- 학습 모드 화면 -->
-    <div id="learning-section">
-        <div id="question-area">단원을 선택해!</div>
-        <div id="hint-area"></div>
-        <div class="numpad">
-            <button class="num-btn" onclick="appendNum(1)">1</button>
-            <button class="num-btn" onclick="appendNum(2)">2</button>
-            <button class="num-btn" onclick="appendNum(3)">3</button>
-            <button class="num-btn" onclick="appendNum(4)">4</button>
-            <button class="num-btn" onclick="appendNum(5)">5</button>
-            <button class="num-btn" onclick="appendNum(6)">6</button>
-            <button class="num-btn" onclick="appendNum(7)">7</button>
-            <button class="num-btn" onclick="appendNum(8)">8</button>
-            <button class="num-btn" onclick="appendNum(9)">9</button>
-            <button class="num-btn btn-action" onclick="clearNum()">지우기</button>
-            <button class="num-btn" onclick="appendNum(0)">0</button>
-            <button class="num-btn btn-action" onclick="checkAnswer()">확인</button>
-        </div>
-        <div id="message"></div>
+    <div class="card">
+      <p class="section-title">🎯 연습할 단을 골라봐</p>
+      <div class="stage-grid" id="stage-grid"></div>
+      <button class="wide-btn review-btn" id="review-btn">🧹 오답 모아풀기 <span id="review-count"></span></button>
+      <div class="mini-stats">
+        <div class="mini-stat"><b id="ms-today">0</b><span>오늘 푼 문제</span></div>
+        <div class="mini-stat"><b id="ms-visits">0</b><span>오늘 접속 횟수</span></div>
+        <div class="mini-stat"><b id="ms-mistakes">0</b><span>다시 볼 문제</span></div>
+      </div>
     </div>
 
-    <!-- 부모님 확인 모드 화면 -->
-    <div id="parent-section">
-        <h2>우리아이 학습 기록</h2>
-        <table>
-            <thead>
-                <tr>
-                    <th>날짜</th>
-                    <th>단원</th>
-                    <th>학습 횟수</th>
-                    <th>평균 점수</th>
-                </tr>
-            </thead>
-            <tbody id="history-tbody">
-                <!-- 기록이 여기에 표시됩니다 -->
-            </tbody>
-        </table>
-        <button class="close-btn" onclick="toggleParentMenu()">학습으로 돌아가기</button>
-        <button class="clear-btn" onclick="clearHistory()">기록 초기화</button>
+    <button class="wide-btn parent-btn" id="parent-btn">📊 부모님 메뉴 (학습 기록 보기)</button>
+  </section>
+
+  <!-- ===== 학습 화면 ===== -->
+  <section id="game-screen" class="hidden">
+    <div class="game-head">
+      <button class="back-btn" id="game-back">← 홈으로</button>
+      <div class="dan-badge" id="dan-badge">2단</div>
+    </div>
+    <div class="progress-track"><div class="progress-fill" id="progress-fill"></div></div>
+    <div class="progress-label" id="progress-label"></div>
+
+    <div id="question-area">?</div>
+    <div id="hint-area"></div>
+
+    <div class="numpad">
+      <button class="num-btn" data-num="1">1</button>
+      <button class="num-btn" data-num="2">2</button>
+      <button class="num-btn" data-num="3">3</button>
+      <button class="num-btn" data-num="4">4</button>
+      <button class="num-btn" data-num="5">5</button>
+      <button class="num-btn" data-num="6">6</button>
+      <button class="num-btn" data-num="7">7</button>
+      <button class="num-btn" data-num="8">8</button>
+      <button class="num-btn" data-num="9">9</button>
+      <button class="num-btn action" id="btn-clear">지우기</button>
+      <button class="num-btn" data-num="0">0</button>
+      <button class="num-btn go" id="btn-check">확인</button>
+    </div>
+    <button class="wide-btn" id="hint-btn" style="background:linear-gradient(135deg,#ffd166,#ffb020); color:#5b3d00;">💡 힌트 보기</button>
+    <div id="message"></div>
+  </section>
+
+  <!-- ===== 세션 결과 ===== -->
+  <section id="result-screen" class="hidden">
+    <div class="card center">
+      <div class="mascot" id="result-mascot" style="font-size:56px;">🎉</div>
+      <h2 id="result-title" style="font-size:26px; margin:6px 0;">연습 완료!</h2>
+      <div class="star-line" id="result-stars">⭐</div>
+      <p id="result-detail" style="font-size:16px; line-height:1.6; color:var(--ink-soft); margin:6px 0 0;"></p>
+      <div class="badge-line">
+        <button id="result-again">한 번 더!</button>
+        <button class="ghost" id="result-home">홈으로</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== 부모님 화면 ===== -->
+  <section id="parent-screen" class="hidden">
+    <div class="game-head">
+      <button class="back-btn" id="parent-back">← 학습으로 돌아가기</button>
+      <div class="dan-badge" style="background:var(--purple);">부모님 메뉴</div>
     </div>
 
-    <script>
-        let currentStage = 0;
-        let currentMultiplier = 0;
-        let userAnswer = "";
-        let isReviewMode = false;
-        let mistakes = []; 
-        
-        const MAX_QUESTIONS = 10;
-        let questionCount = 0;
-        let correctCount = 0;
-        let isFirstAttempt = true;
+    <div class="tabs">
+      <button class="tab active" data-tab="study">학습 기록</button>
+      <button class="tab" data-tab="mistake">자주 틀린 문제</button>
+      <button class="tab" data-tab="visit">접속 기록</button>
+    </div>
 
-        function setStage(stage) {
-            document.getElementById('learning-section').style.display = 'block';
-            document.getElementById('parent-section').style.display = 'none';
-            
-            isReviewMode = false;
-            currentStage = stage;
-            questionCount = 0;
-            correctCount = 0;
-            
-            document.querySelectorAll('.stage-btn').forEach(btn => btn.classList.remove('active'));
-            event.target.classList.add('active');
-            nextQuestion();
+    <div class="card" id="tab-study">
+      <div class="summary-grid" id="study-summary"></div>
+      <table>
+        <thead><tr><th>날짜</th><th>단원</th><th>학습 횟수</th><th>평균 점수</th></tr></thead>
+        <tbody id="history-tbody"></tbody>
+      </table>
+    </div>
+
+    <div class="card hidden" id="tab-mistake">
+      <p class="section-title">🔍 자주 틀리는 문제 (많이 틀린 순)</p>
+      <div id="mistake-wrap"></div>
+    </div>
+
+    <div class="card hidden" id="tab-visit">
+      <div class="summary-grid" id="visit-summary"></div>
+      <p class="section-title">📅 날짜별 접속 기록</p>
+      <table>
+        <thead><tr><th>날짜</th><th>접속 횟수</th><th>첫 접속</th><th>마지막 접속</th></tr></thead>
+        <tbody id="visit-tbody"></tbody>
+      </table>
+    </div>
+
+    <div class="card">
+      <div class="row-actions">
+        <button class="small-btn" id="export-btn">📥 기록 내보내기(백업)</button>
+        <button class="small-btn" id="import-btn">📤 기록 불러오기</button>
+        <input type="file" id="import-file" accept="application/json" class="hidden">
+        <button class="small-btn danger" id="clear-study">학습 기록 지우기</button>
+        <button class="small-btn danger" id="clear-mistake">오답 기록 지우기</button>
+        <button class="small-btn danger" id="clear-visit">접속 기록 지우기</button>
+      </div>
+      <p class="note">
+        기록은 <b>이 브라우저 안에만</b> 저장됩니다(같은 기기·같은 브라우저 기준). 브라우저 데이터를 지우거나 다른 기기로 옮기면
+        기록이 사라지니, 가끔 <b>기록 내보내기</b>로 백업해 두세요. 내보낸 파일은 <b>기록 불러오기</b>로 되돌릴 수 있습니다.
+      </p>
+    </div>
+  </section>
+</div>
+
+<canvas id="confetti"></canvas>
+
+<script>
+(function(){
+  'use strict';
+
+  /* ============================================================
+     0. 저장소 키 / 상수
+     ============================================================ */
+  var KEY_HISTORY = 'gugudan.history.v2';   // 세션(학습) 기록
+  var KEY_MISTAKE = 'gugudan.mistakes.v2';  // 문제별 오답 통계
+  var KEY_VISIT   = 'gugudan.visits.v2';    // 접속 기록
+  var KEY_SOUND   = 'gugudan.sound.v1';     // 소리 on/off
+  var KEY_OLD     = 'gugudanAppHistory';    // 예전 버전 기록(마이그레이션용)
+
+  var MAX_Q = 10;
+  var DAN_LIST = [2,3,4,5,6,7,8,9];
+  var DAN_COLOR = {
+    2:'linear-gradient(135deg,#ffa8c9,#ff7aa8)',
+    3:'linear-gradient(135deg,#ffd166,#ffab2e)',
+    4:'linear-gradient(135deg,#8ee7b1,#45c97e)',
+    5:'linear-gradient(135deg,#8fd4ff,#3fb0f5)',
+    6:'linear-gradient(135deg,#c4b5fd,#9070e8)',
+    7:'linear-gradient(135deg,#ffb08a,#ff7a45)',
+    8:'linear-gradient(135deg,#8fe4e4,#35bcbc)',
+    9:'linear-gradient(135deg,#ffc93c,#f59e0b)'
+  };
+  var PRAISE = ['정답이야! 참 잘했어 🎉','딱 맞았어! 멋지다 ✨','와! 정확해 👏','최고야! 이걸 맞히네 🥳','완벽해! 👍'];
+
+  /* ============================================================
+     1. 저장소 유틸 (사생활 보호 모드 등에서도 죽지 않게 try/catch)
+     ============================================================ */
+  var LS = {
+    get:function(k, def){
+      try{
+        var raw = localStorage.getItem(k);
+        if(raw === null || raw === undefined) return def;
+        var v = JSON.parse(raw);
+        return (v === null || v === undefined) ? def : v;
+      }catch(e){ return def; }
+    },
+    set:function(k, v){
+      try{ localStorage.setItem(k, JSON.stringify(v)); return true; }catch(e){ return false; }
+    },
+    del:function(k){ try{ localStorage.removeItem(k); }catch(e){} }
+  };
+
+  function pad2(n){ return (n<10?'0':'') + n; }
+  function dayKey(d){
+    d = d || new Date();
+    return d.getFullYear() + '-' + pad2(d.getMonth()+1) + '-' + pad2(d.getDate());
+  }
+  function clock(d){
+    d = d || new Date();
+    return pad2(d.getHours()) + ':' + pad2(d.getMinutes());
+  }
+  var DAY_NAMES = ['일','월','화','수','목','금','토'];
+  function prettyDay(key){
+    var p = key.split('-');
+    var d = new Date(parseInt(p[0],10), parseInt(p[1],10)-1, parseInt(p[2],10));
+    return parseInt(p[1],10) + '월 ' + parseInt(p[2],10) + '일 (' + DAY_NAMES[d.getDay()] + ')';
+  }
+
+  /* ============================================================
+     2. 소리 (Web Audio API — 파일 없이 브라우저에서 직접 합성)
+        · 외부 mp3 파일이 없어도 되고, 깃허브 페이지에서 그대로 동작
+        · AudioContext가 없는 환경(테스트 등)에서는 조용히 무시
+     ============================================================ */
+  var Sound = (function(){
+    var ctx = null;
+    var on = (LS.get(KEY_SOUND, 'on') !== 'off');
+
+    function ac(){
+      if(!on) return null;
+      try{
+        if(!ctx){
+          var AC = window.AudioContext || window.webkitAudioContext;
+          if(!AC) return null;
+          ctx = new AC();
         }
+        if(ctx.state === 'suspended' && ctx.resume) { try{ ctx.resume(); }catch(e){} }
+        return ctx;
+      }catch(e){ return null; }
+    }
+    function tone(freq, delay, dur, type, vol){
+      var c = ac(); if(!c) return;
+      try{
+        var o = c.createOscillator(), g = c.createGain();
+        var t0 = c.currentTime + (delay||0);
+        o.type = type || 'sine';
+        o.frequency.setValueAtTime(freq, t0);
+        g.gain.setValueAtTime(0.0001, t0);
+        g.gain.exponentialRampToValueAtTime(vol || 0.14, t0 + 0.015);
+        g.gain.exponentialRampToValueAtTime(0.0001, t0 + (dur || 0.2));
+        o.connect(g); g.connect(c.destination);
+        o.start(t0); o.stop(t0 + (dur || 0.2) + 0.03);
+      }catch(e){}
+    }
+    function slide(f1, f2, delay, dur, vol){
+      var c = ac(); if(!c) return;
+      try{
+        var o = c.createOscillator(), g = c.createGain();
+        var t0 = c.currentTime + (delay||0);
+        o.type = 'sine';
+        o.frequency.setValueAtTime(f1, t0);
+        o.frequency.exponentialRampToValueAtTime(f2, t0 + (dur||0.25));
+        g.gain.setValueAtTime(0.0001, t0);
+        g.gain.exponentialRampToValueAtTime(vol||0.12, t0+0.02);
+        g.gain.exponentialRampToValueAtTime(0.0001, t0+(dur||0.25));
+        o.connect(g); g.connect(c.destination);
+        o.start(t0); o.stop(t0 + (dur||0.25) + 0.03);
+      }catch(e){}
+    }
+    return {
+      isOn:function(){ return on; },
+      set:function(v){ on = v; LS.set(KEY_SOUND, v ? 'on' : 'off'); },
+      tap:function(){ tone(720, 0, 0.07, 'triangle', 0.07); },
+      correct:function(){
+        tone(523.25, 0,    0.16, 'sine', 0.16);
+        tone(659.25, 0.09, 0.18, 'sine', 0.15);
+        tone(783.99, 0.18, 0.24, 'sine', 0.15);
+      },
+      wrong:function(){
+        slide(330, 210, 0, 0.28, 0.11);
+        tone(196, 0.16, 0.22, 'triangle', 0.08);
+      },
+      hint:function(){ tone(880, 0, 0.1, 'triangle', 0.09); tone(1174.7, 0.09, 0.14, 'triangle', 0.08); },
+      complete:function(){
+        var notes = [523.25, 659.25, 783.99, 1046.5];
+        for(var i=0;i<notes.length;i++) tone(notes[i], i*0.13, 0.32, 'triangle', 0.15);
+      },
+      levelup:function(){ tone(659.25,0,0.1,'square',0.07); tone(987.77,0.08,0.16,'square',0.07); }
+    };
+  })();
 
-        function startReview() {
-            document.getElementById('learning-section').style.display = 'block';
-            document.getElementById('parent-section').style.display = 'none';
+  /* ============================================================
+     3. 기록 (학습 / 오답 / 접속)
+     ============================================================ */
+  function loadMistakes(){ return LS.get(KEY_MISTAKE, {}); }
+  function mKey(dan, mult){ return dan + 'x' + mult; }
 
-            if(mistakes.length === 0) {
-                let msgBox = document.getElementById("message");
-                msgBox.style.color = "green";
-                msgBox.innerText = "아직 틀린 문제가 없어요! 완벽해요 🌟";
-                setTimeout(() => msgBox.innerText = "", 2000);
-                return;
-            }
-            
-            isReviewMode = true;
-            document.querySelectorAll('.stage-btn').forEach(btn => btn.classList.remove('active'));
-            document.getElementById('review-btn').classList.add('active');
-            document.getElementById("progress-text").innerText = `틀렸던 문제들 뿌수기! (남은 문제: ${mistakes.length}개)`;
-            nextQuestion();
-        }
+  function addMistake(dan, mult){
+    var m = loadMistakes();
+    var k = mKey(dan, mult);
+    if(!m[k]) m[k] = { dan:dan, mult:mult, wrong:0, right:0, last:0, done:false };
+    m[k].wrong += 1;
+    m[k].done = false;          // 다시 틀렸으니 '다시 볼 문제'로 되돌린다
+    m[k].last = Date.now();
+    LS.set(KEY_MISTAKE, m);
+  }
+  function addRight(dan, mult){
+    var m = loadMistakes();
+    var k = mKey(dan, mult);
+    if(m[k]){
+      m[k].right = (m[k].right||0) + 1;
+      m[k].done = true;           // 맞혔으니 '다시 볼 문제' 목록에서 빠진다
+      m[k].last = Date.now();
+      LS.set(KEY_MISTAKE, m);
+    }
+  }
+  // "다시 볼 문제" = 틀린 뒤 아직 맞혀서 해결(done)하지 못한 문제
+  function unresolvedMistakes(){
+    var m = loadMistakes(), out = [];
+    for(var k in m){
+      if(!m.hasOwnProperty(k)) continue;
+      if(!m[k].done) out.push(m[k]);
+    }
+    out.sort(function(a,b){ return (b.wrong||0) - (a.wrong||0); });
+    return out;
+  }
+  function registerVisit(){
+    var v = LS.get(KEY_VISIT, { total:0, days:{}, log:[], last:null });
+    if(!v.days) v.days = {};
+    if(!v.log) v.log = [];
+    var d = dayKey();
+    if(!v.days[d]) v.days[d] = { count:0, first:'', last:'' };
+    // 새로고침(F5)은 새 접속으로 세지 않는다 — 마지막 접속 20분 이내면 같은 접속으로 처리
+    var lastTs = (v.log && v.log.length) ? v.log[v.log.length-1].t : 0;
+    var isNewVisit = (Date.now() - lastTs) > 20*60*1000;
+    if(isNewVisit){
+      v.total = (v.total||0) + 1;
+      v.days[d].count += 1;
+      v.log.push({ t:Date.now(), d:prettyDay(d) + ' ' + clock() });
+      if(v.log.length > 200) v.log = v.log.slice(v.log.length - 200);
+    }
+    if(!v.days[d].first) v.days[d].first = clock();
+    v.days[d].last = clock();
+    v.last = prettyDay(d) + ' ' + clock();
+    LS.set(KEY_VISIT, v);
+    return v;
+  }
+  function saveSession(stage, score, firstTry, total){
+    var h = LS.get(KEY_HISTORY, []);
+    if(!Array.isArray(h)) h = [];
+    var now = new Date();
+    h.push({ ts:now.getTime(), date:prettyDay(dayKey(now)), stage:stage, score:score, firstTry:firstTry, total:total });
+    if(h.length > 1000) h = h.slice(h.length - 1000);
+    LS.set(KEY_HISTORY, h);
+  }
+  // 예전 버전(gugudanAppHistory) 기록 자동 이관
+  function migrateOldHistory(){
+    var old = LS.get(KEY_OLD, null);
+    if(!old || !Array.isArray(old) || !old.length) return;
+    if(LS.get(KEY_HISTORY, []).length) { LS.del(KEY_OLD); return; }
+    var now = new Date(), cur = now.getFullYear(), out = [];
+    for(var i=0;i<old.length;i++){
+      var it = old[i] || {};
+      var month = 1, day = 1;
+      var nums = String(it.date||'').match(/\d+/g) || [];
+      if(nums.length >= 2){ month = parseInt(nums[0],10); day = parseInt(nums[1],10); }
+      var st = parseInt(it.stage,10) || 0;
+      out.push({
+        ts:new Date(cur, month-1, day, 12, 0, 0).getTime(),
+        date:prettyDay(dayKey(new Date(cur, month-1, day))),
+        stage:st, score:parseInt(it.score,10)||0, firstTry:null, total:MAX_Q
+      });
+    }
+    LS.set(KEY_HISTORY, out);
+    LS.del(KEY_OLD);
+  }
 
-        function nextQuestion() {
-            if(!isReviewMode && questionCount >= MAX_QUESTIONS) {
-                endSession();
-                return;
-            }
+  /* ============================================================
+     4. 구구단 한글 읽기 (전통 구구단 암송: "칠팔 오십육")
+     ============================================================ */
+  var SINO = ['','일','이','삼','사','오','육','칠','팔','구'];
+  function sinoNum(n){
+    if(n < 10) return SINO[n];
+    var t = Math.floor(n/10), o = n%10;
+    return (t === 1 ? '십' : SINO[t] + '십') + (o ? SINO[o] : '');
+  }
+  function chant(dan, mult){
+    return SINO[dan] + SINO[mult] + ' ' + sinoNum(dan*mult);
+  }
 
-            if(isReviewMode) {
-                let randIdx = Math.floor(Math.random() * mistakes.length);
-                currentStage = mistakes[randIdx].dan;
-                currentMultiplier = mistakes[randIdx].mult;
-            } else {
-                if(currentStage === 0) return;
-                currentMultiplier = Math.floor(Math.random() * 9) + 1;
-                questionCount++;
-                document.getElementById("progress-text").innerText = `${currentStage}단 도전 중! (${questionCount} / ${MAX_QUESTIONS})`;
-            }
-            
-            userAnswer = "";
-            isFirstAttempt = true;
-            document.getElementById("hint-area").style.display = "none";
-            document.getElementById("message").innerText = "";
-            updateDisplay();
-        }
+  /* ============================================================
+     5. 화면 요소
+     ============================================================ */
+  function $(id){ return document.getElementById(id); }
+  var el = {
+    home:$('home-screen'), game:$('game-screen'), result:$('result-screen'), parent:$('parent-screen'),
+    stageGrid:$('stage-grid'), homeBubble:$('home-bubble'),
+    reviewBtn:$('review-btn'), reviewCount:$('review-count'),
+    msToday:$('ms-today'), msVisits:$('ms-visits'), msMistakes:$('ms-mistakes'),
+    danBadge:$('dan-badge'), fill:$('progress-fill'), plabel:$('progress-label'),
+    question:$('question-area'), hint:$('hint-area'), message:$('message'),
+    soundToggle:$('sound-toggle'), confetti:$('confetti'),
+    resultTitle:$('result-title'), resultStars:$('result-stars'), resultDetail:$('result-detail'),
+    resultMascot:$('result-mascot')
+  };
 
-        function endSession() {
-            let score = (correctCount / MAX_QUESTIONS) * 100;
-            let msgBox = document.getElementById("message");
-            let progressText = document.getElementById("progress-text");
-            
-            // 학습 기록 저장 로직
-            saveHistory(currentStage, score);
+  /* ============================================================
+     6. 게임 상태
+     ============================================================ */
+  var S = {
+    stage:0, mult:0, answer:'', reviewMode:false,
+    qIndex:0, firstTryCorrect:0, attemptsThisQ:0, hintLevel:0,
+    locked:false, lastMult:0
+  };
 
-            document.getElementById("question-area").innerText = "연습 완료!";
-            document.getElementById("hint-area").style.display = "none";
-            
-            if (score >= 80) {
-                msgBox.style.color = "blue";
-                msgBox.innerText = `수고했어! 💯 점수: ${score}점`;
-                progressText.innerText = "훌륭하게 통과했어! 다른 단원도 도전해봐 🏆";
-            } else {
-                msgBox.style.color = "red";
-                msgBox.innerText = `조금 더 연습하자! 점수: ${score}점`;
-                progressText.innerText = "틀린 문제는 [오답 모아풀기]에서 연습할 수 있어 💡";
-            }
-            
-            currentStage = 0;
-            document.querySelectorAll('.stage-btn').forEach(btn => btn.classList.remove('active'));
-        }
+  /* ============================================================
+     7. 홈 화면 그리기
+     ============================================================ */
+  function renderStages(){
+    var html = '';
+    for(var i=0;i<DAN_LIST.length;i++){
+      var d = DAN_LIST[i];
+      html += '<button class="stage-btn" data-dan="' + d + '" style="background:' + DAN_COLOR[d] + '">' + d + '단</button>';
+    }
+    el.stageGrid.innerHTML = html;
+  }
+  function renderHomeStats(){
+    var v = LS.get(KEY_VISIT, {total:0, days:{}});
+    var today = (v.days && v.days[dayKey()]) ? v.days[dayKey()].count : 0;
 
-        function updateDisplay() {
-            if(currentStage > 0) {
-                document.getElementById("question-area").innerText = `${currentStage} × ${currentMultiplier} = ${userAnswer || "?"}`;
-            }
-        }
+    var h = LS.get(KEY_HISTORY, []);
+    var tKey = dayKey();
+    var solvedToday = 0;
+    for(var i=0;i<h.length;i++){
+      if(h[i].date === prettyDay(tKey)) solvedToday += (h[i].total || MAX_Q);
+    }
+    el.msToday.textContent = solvedToday;
+    el.msVisits.textContent = today;
+    var mis = unresolvedMistakes();
+    el.msMistakes.textContent = mis.length;
+    el.reviewCount.textContent = mis.length ? '(' + mis.length + '개)' : '';
 
-        function appendNum(num) {
-            if(userAnswer.length < 2) {
-                userAnswer += num.toString();
-                updateDisplay();
-            }
-        }
+    var v2 = LS.get(KEY_VISIT, {total:0});
+    if(v2.total <= 1){
+      el.homeBubble.textContent = '안녕! 처음 만나서 반가워 🦊 몇 단부터 연습해 볼까?';
+    } else if(mis.length){
+      el.homeBubble.textContent = '또 왔구나! 지금까지 ' + v2.total + '번 놀았어. 다시 볼 문제가 ' + mis.length + '개 있어!';
+    } else {
+      el.homeBubble.textContent = '와, ' + v2.total + '번째 놀이야! 오늘은 몇 단을 정복해 볼까?';
+    }
+  }
 
-        function clearNum() {
-            userAnswer = "";
-            updateDisplay();
-        }
+  /* ============================================================
+     8. 게임 시작 / 문제 출제
+     ============================================================ */
+  function showScreen(name){
+    el.home.classList.toggle('hidden', name !== 'home');
+    el.game.classList.toggle('hidden', name !== 'game');
+    el.result.classList.toggle('hidden', name !== 'result');
+    el.parent.classList.toggle('hidden', name !== 'parent');
+  }
 
-        function checkAnswer() {
-            if(!userAnswer || currentStage === 0) return;
-            
-            let correct = currentStage * currentMultiplier;
-            let msgBox = document.getElementById("message");
+  // 자주 틀린 문제를 더 자주 출제하는 가중치
+  function pickMultiplier(){
+    var m = loadMistakes();
+    var pool = [];
+    for(var i=1;i<=9;i++){
+      var e = m[mKey(S.stage, i)];
+      var w = 1;
+      if(e){
+        var gap = (e.wrong||0) - (e.right||0);
+        if(gap >= 2) w = 5;
+        else if(gap === 1) w = 3;
+        else w = 2;
+      }
+      for(var j=0;j<w;j++) pool.push(i);
+    }
+    var pick = pool[Math.floor(Math.random()*pool.length)];
+    // 같은 문제가 연속으로 나오지 않게 한 번 더 뽑기
+    if(pick === S.lastMult && pool.length > 1){
+      pick = pool[Math.floor(Math.random()*pool.length)];
+    }
+    S.lastMult = pick;
+    return pick;
+  }
 
-            if(parseInt(userAnswer) === correct) {
-                msgBox.style.color = "green";
-                msgBox.innerText = "정답이야! 참 잘했어 🎉";
-                
-                if(!isReviewMode && isFirstAttempt) {
-                    correctCount++;
-                }
-                
-                if(isReviewMode) {
-                    mistakes = mistakes.filter(m => !(m.dan === currentStage && m.mult === currentMultiplier));
-                    document.getElementById("progress-text").innerText = `틀렸던 문제들 뿌수기! (남은 문제: ${mistakes.length}개)`;
-                    
-                    if(mistakes.length === 0) {
-                        setTimeout(() => {
-                            msgBox.innerText = "오답 노트를 다 맞혔어! 최고야 🚀";
-                            isReviewMode = false;
-                            document.getElementById('review-btn').classList.remove('active');
-                            document.getElementById("question-area").innerText = "단원을 선택해!";
-                            document.getElementById("progress-text").innerText = "단원을 선택해서 10문제를 풀어보자!";
-                        }, 1500);
-                        return;
-                    }
-                }
-                setTimeout(nextQuestion, 1000);
-            } else {
-                msgBox.style.color = "red";
-                msgBox.innerText = "다시 한번 생각해볼까?";
-                
-                isFirstAttempt = false; 
-                
-                let alreadyExists = mistakes.some(m => m.dan === currentStage && m.mult === currentMultiplier);
-                if(!alreadyExists) {
-                    mistakes.push({dan: currentStage, mult: currentMultiplier});
-                }
+  function startSession(stage){
+    S.stage = stage; S.reviewMode = false; S.qIndex = 0; S.firstTryCorrect = 0; S.lastMult = 0;
+    el.question.classList.remove('hidden');
+    el.reviewBtn.classList.remove('active');
+    nextQuestion();
+  }
+  function startReview(){
+    var pool = unresolvedMistakes();
+    if(!pool.length){
+      flashMessage('아직 다시 볼 문제가 없어요! 완벽해요 🌟', 'good');
+      Sound.levelup();
+      return;
+    }
+    S.reviewMode = true; S.reviewPool = pool; S.qIndex = 0; S.firstTryCorrect = 0; S.lastMult = 0;
+    nextQuestion();
+  }
 
-                showHint(currentStage, currentMultiplier);
-                userAnswer = "";
-                updateDisplay();
-            }
-        }
+  function nextQuestion(){
+    if(!S.reviewMode && !S.stage) return;   // 홈으로 나간 뒤 늦게 도착한 타이머 방어
+    S.answer = ''; S.attemptsThisQ = 0; S.hintLevel = 0; S.locked = false;
+    el.hint.className = ''; el.hint.innerHTML = '';
+    el.message.className = ''; el.message.textContent = '';
 
-        function showHint(dan, mult) {
-            let hintBox = document.getElementById("hint-area");
-            hintBox.innerHTML = "";
-            hintBox.style.display = "flex";
+    if(S.reviewMode){
+      var pool = unresolvedMistakes();
+      if(!pool.length){ finishReview(); return; }
+      var pick = pool[Math.floor(Math.random()*pool.length)];
+      S.stage = pick.dan; S.mult = pick.mult;
+      el.danBadge.textContent = '🧹 오답 뿌수기';
+      el.danBadge.style.background = 'linear-gradient(135deg,#ffcf4d,#ff9f1c)';
+      el.fill.style.width = '100%';
+      el.plabel.textContent = '남은 문제 ' + pool.length + '개';
+    } else {
+      if(S.qIndex >= MAX_Q){ endSession(); return; }
+      S.qIndex++;
+      S.mult = pickMultiplier();
+      el.danBadge.textContent = S.stage + '단';
+      el.danBadge.style.background = DAN_COLOR[S.stage];
+      el.fill.style.width = ((S.qIndex-1)/MAX_Q*100) + '%';
+      el.plabel.textContent = S.qIndex + ' / ' + MAX_Q + ' 문제';
+    }
+    updateDisplay();
+  }
 
-            let visualHtml = "";
-            for(let i=0; i<dan; i++) {
-                visualHtml += "<div class='dot-row'>";
-                for(let j=0; j<mult; j++) {
-                    visualHtml += "<div class='dot'></div>";
-                }
-                visualHtml += "</div>";
-            }
-            hintBox.innerHTML += visualHtml;
+  function updateDisplay(){
+    if(!S.stage){ el.question.textContent = '단원을 선택해!'; return; }
+    var shown = S.answer === '' ? '?' : S.answer;
+    el.question.innerHTML = S.stage + ' × ' + S.mult + ' = <span class="blank">' + shown + '</span>';
+  }
 
-            let hintText = `<div class='hint-text'>점이 가로로 ${mult}개씩 ${dan}줄 있어!</div>`;
-            if(dan === 9) {
-                hintText += `<div class='hint-text'>💡 힌트: 10을 곱한 뒤 자기 자신을 한 번 빼볼까? (${mult}0 - ${mult})</div>`;
-            } else if (dan === 7 && mult === 8) {
-                hintText += `<div class='hint-text'>💡 힌트: 7 × 5 = 35 와 7 × 3 = 21 을 더해보자!</div>`;
-            }
-            hintBox.innerHTML += hintText;
-        }
+  function flashMessage(text, kind){
+    el.message.className = kind || '';
+    el.message.textContent = text;
+  }
 
-        /* --- 부모님 기록 관련 함수 --- */
-        function saveHistory(stage, score) {
-            let history = JSON.parse(localStorage.getItem('gugudanAppHistory') || '[]');
-            let today = new Date();
-            let dateStr = `${today.getMonth() + 1}월 ${today.getDate()}일`;
-            
-            history.push({ date: dateStr, stage: stage, score: score });
-            localStorage.setItem('gugudanAppHistory', JSON.stringify(history));
-        }
+  function appendNum(n){
+    if(S.locked) return;
+    if(S.answer.length >= 2) return;
+    S.answer += String(n);
+    Sound.tap();
+    updateDisplay();
+  }
+  function clearNum(){
+    if(S.locked) return;
+    S.answer = '';
+    Sound.tap();
+    updateDisplay();
+  }
 
-        function toggleParentMenu() {
-            let learningSec = document.getElementById('learning-section');
-            let parentSec = document.getElementById('parent-section');
-            
-            if (parentSec.style.display === 'none' || parentSec.style.display === '') {
-                learningSec.style.display = 'none';
-                parentSec.style.display = 'block';
-                renderHistory();
-            } else {
-                learningSec.style.display = 'block';
-                parentSec.style.display = 'none';
-            }
-        }
+  /* ============================================================
+     9. 정답 판정
+     ============================================================ */
+  function checkAnswer(){
+    if(S.locked || !S.stage || S.answer === '') return;
+    var correct = S.stage * S.mult;
+    S.attemptsThisQ++;
 
-        function renderHistory() {
-            let history = JSON.parse(localStorage.getItem('gugudanAppHistory') || '[]');
-            let summary = {};
-            
-            // 날짜와 단원을 기준으로 데이터 합치기
-            history.forEach(item => {
-                let key = item.date + "_" + item.stage;
-                if(!summary[key]) {
-                    summary[key] = { date: item.date, stage: item.stage, count: 0, totalScore: 0 };
-                }
-                summary[key].count++;
-                summary[key].totalScore += item.score;
-            });
+    if(parseInt(S.answer, 10) === correct){
+      // ---- 정답 ----
+      var firstTry = (S.attemptsThisQ === 1);
+      if(firstTry && !S.reviewMode) S.firstTryCorrect++;
+      if(firstTry || S.reviewMode) addRight(S.stage, S.mult); // 한 번에 맞히거나 오답 복습에서 맞히면 진척
 
-            let tbody = document.getElementById('history-tbody');
-            tbody.innerHTML = '';
-            
-            if(Object.keys(summary).length === 0) {
-                tbody.innerHTML = '<tr><td colspan="4">아직 학습 기록이 없습니다.</td></tr>';
-                return;
-            }
+      el.question.classList.remove('bad'); void el.question.offsetWidth; el.question.classList.add('ok');
+      flashMessage(PRAISE[Math.floor(Math.random()*PRAISE.length)], 'good');
+      Sound.correct();
+      if(S.attemptsThisQ === 1) burstConfetti(18);
 
-            for(let key in summary) {
-                let s = summary[key];
-                let avg = Math.round(s.totalScore / s.count);
-                tbody.innerHTML += `<tr>
-                    <td>${s.date}</td>
-                    <td>${s.stage}단</td>
-                    <td>${s.count}번</td>
-                    <td>${avg}점</td>
-                </tr>`;
-            }
-        }
+      if(S.reviewMode){
+        S.locked = true;
+        setTimeout(nextQuestion, 850);
+      } else {
+        el.fill.style.width = (S.qIndex/MAX_Q*100) + '%';
+        S.locked = true;
+        setTimeout(nextQuestion, 850);
+      }
+      return;
+    }
 
-        function clearHistory() {
-            if(confirm("정말로 모든 학습 기록을 지우시겠습니까? (틀린 문제 기록은 유지됩니다)")) {
-                localStorage.removeItem('gugudanAppHistory');
-                renderHistory();
-            }
-        }
-    </script>
+    // ---- 오답 ----
+    addMistake(S.stage, S.mult);
+    el.question.classList.remove('ok'); void el.question.offsetWidth; el.question.classList.add('bad');
+    S.answer = '';
+    updateDisplay();
+    Sound.wrong();
+
+    S.hintLevel = Math.min(S.hintLevel + 1, 4);
+    if(S.hintLevel >= 4){
+      flashMessage('괜찮아! 정답을 같이 보자 💛', 'bad');
+    } else if(S.attemptsThisQ === 1){
+      flashMessage('괜찮아, 틀려도 돼! 💪 힌트를 볼까?', 'bad');
+    } else {
+      flashMessage('조금만 더! 다른 힌트를 보여줄게 🙂', 'bad');
+    }
+    renderHint(true);
+  }
+
+  /* ============================================================
+     10. 힌트 (4단계로 점점 자세하게)
+         L1 점 그림 → L2 뛰어 세기 → L3 계산 전략 → L4 정답+암송
+     ============================================================ */
+  function hintFrame(head, bodyHtml){
+    return '<div class="hint-head">' + head + '</div>' + bodyHtml;
+  }
+
+  function dotPicture(dan, mult){
+    var html = '';
+    for(var r=0;r<dan;r++){
+      html += '<div class="dot-row"><span class="rowtag">' + (r+1) + '줄</span>';
+      for(var c=0;c<mult;c++){
+        html += '<span class="dot' + (((c+1)%5===0) ? ' g5' : '') + '"></span>';
+      }
+      html += '</div>';
+    }
+    return html;
+  }
+
+  function skipCounting(dan, mult){
+    var chips = '', v = 0;
+    for(var i=1;i<mult;i++){
+      v += dan;
+      chips += '<span class="skip-chip">' + v + '</span>';
+    }
+    chips += '<span class="skip-chip next">+' + dan + ' = ?</span>';
+    return '<div class="skip-list">' + chips + '</div>' +
+           '<div class="strategy">' + dan + '씩 ' + mult + '번 뛰어 세면 돼! 마지막 수에 ' + dan + '을 한 번 더 더해볼까?</div>';
+  }
+
+  function strategyHint(dan, mult){
+    var a = '';
+    switch(dan){
+      case 2: a = '2를 곱하는 건 <b>같은 수를 두 번 더하는 것</b>이야!<br>' + mult + ' + ' + mult + ' = ?'; break;
+      case 3: a = '3단은 <b>2단에서 한 번 더</b>!<br>2×' + mult + '=' + (2*mult) + ' 니까, ' + (2*mult) + ' + ' + mult + ' = ?'; break;
+      case 4: a = '4단은 <b>2단을 두 번</b>!<br>2×' + mult + '=' + (2*mult) + ' 니까, ' + (2*mult) + ' + ' + (2*mult) + ' = ?'; break;
+      case 5: a = '5단은 <b>10단의 절반</b>이야!<br>10×' + mult + '=' + (10*mult) + ' 니까, 그 절반은 ?'; break;
+      case 6: a = '6단은 <b>5단에서 한 번 더</b>!<br>5×' + mult + '=' + (5*mult) + ' 니까, ' + (5*mult) + ' + ' + mult + ' = ?'; break;
+      case 7: a = '7단은 <b>5단 + 2단</b>으로 쪼개자!<br>5×' + mult + '=' + (5*mult) + ', 2×' + mult + '=' + (2*mult) + ' → ' + (5*mult) + ' + ' + (2*mult) + ' = ?'; break;
+      case 8: a = '8단은 <b>4단의 두 배</b>!<br>4×' + mult + '=' + (4*mult) + ' 니까, ' + (4*mult) + ' + ' + (4*mult) + ' = ?'; break;
+      case 9: a = '9단은 <b>10단에서 한 번 빼기</b>!<br>10×' + mult + '=' + (10*mult) + ' 니까, ' + (10*mult) + ' - ' + mult + ' = ?'; break;
+      default: a = dan + '씩 ' + mult + '번 더해 보자!';
+    }
+    var extra = '';
+    if(mult > 5){
+      extra = '<div style="margin-top:6px;">또는 <b>5묶음 + 나머지</b>: ' + dan + '×5=' + (dan*5) +
+              ', ' + dan + '×' + (mult-5) + '=' + (dan*(mult-5)) + ' → ' + (dan*5) + ' + ' + (dan*(mult-5)) + ' = ?</div>';
+    } else if(mult > 2){
+      extra = '<div style="margin-top:6px;">또는 <b>반으로 나누기</b>: ' + dan + '×' + mult + ' = ' + dan + '×' + Math.floor(mult/2) +
+              ' + ' + dan + '×' + (mult - Math.floor(mult/2)) + '</div>';
+    }
+    return '<div class="strategy">' + a + extra + '</div>';
+  }
+
+  function renderHint(auto){
+    if(!S.stage) return;
+    var dan = S.stage, mult = S.mult, L = S.hintLevel;
+    if(L < 1){ L = 1; S.hintLevel = 1; }
+
+    var head = ['', '🔎 힌트 1 · 그림으로 보기', '🔎 힌트 2 · 뛰어 세기', '🔎 힌트 3 · 계산 꿀팁', '💛 정답 확인'][L];
+    var body = '';
+
+    if(L === 1){
+      body = dotPicture(dan, mult) +
+             '<div class="strategy">점이 가로로 <b>' + mult + '개</b>씩 <b>' + dan + '줄</b> 있어!' +
+             '<br>5개마다 파란 점이야. 5개씩 묶어서 세면 훨씬 빨라 🚀</div>';
+    } else if(L === 2){
+      body = skipCounting(dan, mult) +
+             '<div style="font-size:13px; color:#8a7f96; text-align:center;">' + dan + '단은 ' + dan + ', ' + (dan*2) + ', ' + (dan*3) + ' … 이렇게 커지는 수야!</div>';
+    } else if(L === 3){
+      body = strategyHint(dan, mult);
+    } else {
+      body = '<div class="read-aloud">' + chant(dan, mult) + '</div>' +
+             '<div class="strategy" style="text-align:center;">정답은 <b>' + (dan*mult) + '</b> 이야!<br>소리 내어 한 번 읽고, 숫자를 눌러서 따라 써 보자 😊</div>';
+    }
+    el.hint.innerHTML = hintFrame(head, body) + '<div style="margin-top:10px;">' + dotPicture(dan, mult) + '</div>';
+    el.hint.className = 'show';
+    if(auto) Sound.hint();
+  }
+
+  /* ============================================================
+     11. 세션 종료 / 결과
+     ============================================================ */
+  function endSession(){
+    var score = Math.round(S.firstTryCorrect / MAX_Q * 100);
+    saveSession(S.stage, score, S.firstTryCorrect, MAX_Q);
+
+    var stars = score === 100 ? 3 : (score >= 80 ? 2 : (score >= 50 ? 1 : 1));
+    el.resultStars.textContent = '⭐'.repeat(stars);
+    el.resultTitle.textContent = '연습 완료!';
+    el.resultMascot.textContent = score >= 80 ? '🏆' : '🐣';
+    el.resultDetail.innerHTML = S.stage + '단 ' + MAX_Q + '문제 중 <b>' + S.firstTryCorrect + '개</b>를 한 번에 맞혔어요!<br>' +
+      '점수 ' + score + '점 — 점수보다 <b>매일 하는 것</b>이 훨씬 대단해요 😊' +
+      (score >= 100 ? '<br>완벽해요! 이 단은 이제 자신 있어요 🎉' : '<br>틀린 문제는 [오답 모아풀기]에서 다시 만나요 💡');
+    el.result.dataset.stage = String(S.stage);
+    showScreen('result');
+    Sound.complete();
+    if(score >= 80) burstConfetti(90);
+
+    S.stage = 0;
+  }
+
+  function finishReview(){
+    el.resultStars.textContent = '🌟';
+    el.resultTitle.textContent = '오답 뿌수기 성공!';
+    el.resultMascot.textContent = '🥳';
+    el.resultDetail.innerHTML = '다시 볼 문제를 모두 맞혔어요!<br>정말 대단해요 👏';
+    el.result.dataset.stage = '';
+    showScreen('result');
+    Sound.complete();
+    burstConfetti(90);
+  }
+
+  /* ============================================================
+     12. 부모님 메뉴
+     ============================================================ */
+  function renderHistory(){
+    var h = LS.get(KEY_HISTORY, []);
+    var summary = {}, order = [];
+    for(var i=0;i<h.length;i++){
+      var it = h[i];
+      var key = it.date + '_' + it.stage;
+      if(!summary[key]){
+        summary[key] = { date:it.date, ts:it.ts||0, stage:it.stage, count:0, total:0 };
+        order.push(key);
+      }
+      summary[key].count++;
+      summary[key].total += it.score;
+    }
+    order.sort(function(a,b){ return summary[b].ts - summary[a].ts; });
+
+    var tbody = $('history-tbody'), html = '';
+    if(!order.length){
+      tbody.innerHTML = '<tr><td colspan="4" class="empty">아직 학습 기록이 없습니다.<br>아이가 「확인」을 눌러 10문제를 끝내면 기록이 쌓입니다.</td></tr>';
+    } else {
+      for(var k=0;k<order.length;k++){
+        var s = summary[order[k]];
+        html += '<tr><td>' + s.date + '</td><td>' + s.stage + '단</td><td>' + s.count + '번</td><td>' +
+                Math.round(s.total/s.count) + '점</td></tr>';
+      }
+      tbody.innerHTML = html;
+    }
+
+    // 요약
+    var todayStr = prettyDay(dayKey());
+    var todaySessions = 0;
+    for(var j=0;j<h.length;j++){ if(h[j].date === todayStr) todaySessions++; }
+    var avgAll = 0;
+    if(h.length){ var sum=0; for(var q=0;q<h.length;q++) sum += h[q].score; avgAll = Math.round(sum/h.length); }
+    $('study-summary').innerHTML =
+      '<div><b>' + h.length + '회</b><span>전체 학습 횟수</span></div>' +
+      '<div><b>' + Math.round(sumOfTotal()) + '개</b><span>푼 문제 수</span></div>' +
+      '<div><b>' + avgAll + '점</b><span>전체 평균</span></div>';
+  }
+  function sumOfTotal(){
+    var h = LS.get(KEY_HISTORY, []), s = 0;
+    for(var i=0;i<h.length;i++) s += (h[i].total || MAX_Q);
+    return s;
+  }
+
+  function renderMistakes(){
+    var m = loadMistakes();
+    var list = [];
+    for(var k in m){ if(m.hasOwnProperty(k)) list.push(m[k]); }
+    list.sort(function(a,b){ return (b.wrong||0)-(a.wrong||0); });
+
+    var wrap = $('mistake-wrap');
+    if(!list.length || !list[0].wrong){
+      wrap.innerHTML = '<div class="empty">아직 틀린 문제가 없어요!<br>정말 잘하고 있어요 🌟</div>';
+      return;
+    }
+    var max = list[0].wrong;
+    var html = '<table><thead><tr><th>순위</th><th>문제</th><th>틀린 횟수</th><th>상태</th></tr></thead><tbody>';
+    var top = list.slice(0, 12);
+    for(var i=0;i<top.length;i++){
+      var e = top[i];
+      var status = e.done ? '<span style="color:#2fae63;">해결됨 ✓</span>' : '<span style="color:#e8637d;">연습 필요</span>';
+      var w = Math.max(6, Math.round((e.wrong/max)*100));
+      html += '<tr>' +
+        '<td class="rank">' + (i+1) + '</td>' +
+        '<td><b>' + e.dan + ' × ' + e.mult + ' = ' + (e.dan*e.mult) + '</b>' +
+          '<div class="bar"><i style="width:' + w + '%"></i></div>' +
+          '<div style="font-size:11px;color:#9a90a6;margin-top:3px;">' + chant(e.dan, e.mult) + '</div></td>' +
+        '<td>' + e.wrong + '회<br><span style="font-size:11px;color:#9a90a6;">맞힘 ' + (e.right||0) + '회</span></td>' +
+        '<td>' + status + '</td></tr>';
+    }
+    html += '</tbody></table>';
+    if(list.length > top.length){
+      html += '<div class="empty">이외 ' + (list.length - top.length) + '개 문제가 더 있습니다.</div>';
+    }
+    wrap.innerHTML = html;
+  }
+
+  function renderVisits(){
+    var v = LS.get(KEY_VISIT, { total:0, days:{}, last:null, log:[] });
+    var keys = [];
+    for(var k in v.days){ if(v.days.hasOwnProperty(k)) keys.push(k); }
+    keys.sort(function(a,b){ return a < b ? 1 : -1; });
+
+    $('visit-summary').innerHTML =
+      '<div><b>' + (v.total||0) + '회</b><span>전체 접속</span></div>' +
+      '<div><b>' + ((v.days[dayKey()]||{}).count||0) + '회</b><span>오늘 접속</span></div>' +
+      '<div><b>' + Object.keys(v.days).length + '일</b><span>접속한 날</span></div>';
+
+    var tbody = $('visit-tbody');
+    if(!keys.length){
+      tbody.innerHTML = '<tr><td colspan="4" class="empty">아직 접속 기록이 없습니다.</td></tr>';
+      return;
+    }
+    var html = '';
+    for(var i=0;i<Math.min(keys.length, 30);i++){
+      var d = keys[i], row = v.days[d];
+      html += '<tr><td>' + prettyDay(d) + '</td><td>' + row.count + '번</td><td>' + (row.first||'-') + '</td><td>' + (row.last||'-') + '</td></tr>';
+    }
+    tbody.innerHTML = html;
+  }
+
+  /* ============================================================
+     13. 축하 효과(컨페티) — 외부 라이브러리 없이 canvas로
+     ============================================================ */
+  var cvs = el.confetti, cctx = cvs && cvs.getContext ? cvs.getContext('2d') : null;
+  var parts = [], rafId = null;
+  function sizeCanvas(){
+    if(!cvs) return;
+    cvs.width = window.innerWidth; cvs.height = window.innerHeight;
+  }
+  function burstConfetti(n){
+    if(!cctx) return;
+    sizeCanvas();
+    var colors = ['#ff8fb1','#ffd166','#63c1ff','#54d98c','#b39ddb','#ff9f5a'];
+    for(var i=0;i<n;i++){
+      parts.push({
+        x: Math.random()*cvs.width,
+        y: -20 - Math.random()*80,
+        vx: (Math.random()-0.5)*3,
+        vy: 2 + Math.random()*3.4,
+        s: 6 + Math.random()*8,
+        c: colors[Math.floor(Math.random()*colors.length)],
+        r: Math.random()*Math.PI,
+        vr: (Math.random()-0.5)*0.28,
+        life: 130 + Math.random()*70
+      });
+    }
+    if(!rafId) rafId = requestAnimationFrame(tick);
+  }
+  function tick(){
+    if(!cctx){ rafId = null; return; }
+    cctx.clearRect(0,0,cvs.width,cvs.height);
+    for(var i=parts.length-1;i>=0;i--){
+      var p = parts[i];
+      p.x += p.vx; p.y += p.vy; p.vy += 0.045; p.r += p.vr; p.life--;
+      cctx.save();
+      cctx.translate(p.x, p.y); cctx.rotate(p.r);
+      cctx.fillStyle = p.c;
+      cctx.fillRect(-p.s/2, -p.s/2, p.s, p.s*0.62);
+      cctx.restore();
+      if(p.life <= 0 || p.y > cvs.height + 40) parts.splice(i,1);
+    }
+    if(parts.length) rafId = requestAnimationFrame(tick);
+    else { cctx.clearRect(0,0,cvs.width,cvs.height); rafId = null; }
+  }
+
+  /* ============================================================
+     14. 이벤트 연결
+     ============================================================ */
+  el.stageGrid.addEventListener('click', function(ev){
+    var t = ev.target.closest ? ev.target.closest('.stage-btn') : null;
+    if(!t) return;
+    var dan = parseInt(t.getAttribute('data-dan'), 10);
+    if(!dan) return;
+    Sound.tap();
+    showScreen('game');
+    startSession(dan);
+  });
+
+  // 숫자판 (data-num)
+  document.querySelector('.numpad').addEventListener('click', function(ev){
+    var t = ev.target.closest ? ev.target.closest('button') : null;
+    if(!t) return;
+    var n = t.getAttribute('data-num');
+    if(n !== null && n !== undefined) appendNum(parseInt(n,10));
+  });
+  $('btn-clear').addEventListener('click', clearNum);
+  $('btn-check').addEventListener('click', checkAnswer);
+  $('hint-btn').addEventListener('click', function(){
+    S.hintLevel = Math.min(S.hintLevel + 1, 4);
+    if(S.hintLevel === 0) S.hintLevel = 1;
+    renderHint(true);
+  });
+
+  $('review-btn').addEventListener('click', function(){ Sound.tap(); showScreen('game'); startReview(); });
+  $('parent-btn').addEventListener('click', function(){
+    Sound.tap();
+    showScreen('parent');
+    switchTab('study');
+  });
+  $('game-back').addEventListener('click', function(){ S.locked = true; refresh(); });
+  $('parent-back').addEventListener('click', function(){ refresh(); });
+  $('result-again').addEventListener('click', function(){
+    var st = parseInt(el.result.dataset.stage, 10);
+    if(st){ showScreen('game'); startSession(st); }
+    else if(unresolvedMistakes().length){ showScreen('game'); startReview(); }
+    else { refresh(); }
+  });
+  $('result-home').addEventListener('click', function(){ refresh(); });
+  $('sound-toggle').addEventListener('click', function(){
+    var next = !Sound.isOn();
+    Sound.set(next);
+    $('sound-toggle').textContent = next ? '🔊' : '🔇';
+    $('sound-toggle').className = 'icon-btn' + (next ? '' : ' off');
+    if(next) Sound.tap();
+  });
+
+  // 부모님 탭
+  var tabs = document.querySelectorAll('.tab');
+  function switchTab(name){
+    for(var i=0;i<tabs.length;i++){
+      tabs[i].className = 'tab' + (tabs[i].getAttribute('data-tab') === name ? ' active' : '');
+    }
+    $('tab-study').className = 'card' + (name === 'study' ? '' : ' hidden');
+    $('tab-mistake').className = 'card' + (name === 'mistake' ? '' : ' hidden');
+    $('tab-visit').className = 'card' + (name === 'visit' ? '' : ' hidden');
+    if(name === 'study') renderHistory();
+    if(name === 'mistake') renderMistakes();
+    if(name === 'visit') renderVisits();
+  }
+  for(var ti=0; ti<tabs.length; ti++){
+    (function(btn){
+      btn.addEventListener('click', function(){ switchTab(btn.getAttribute('data-tab')); });
+    })(tabs[ti]);
+  }
+
+  // 기록 관리
+  $('clear-study').addEventListener('click', function(){
+    if(confirm('학습 기록(점수·횟수)을 모두 지울까요? 되돌릴 수 없어요.')){ LS.del(KEY_HISTORY); renderHistory(); renderHomeStats(); }
+  });
+  $('clear-mistake').addEventListener('click', function(){
+    if(confirm('오답 기록(자주 틀린 문제)을 모두 지울까요?')){ LS.del(KEY_MISTAKE); renderMistakes(); renderHomeStats(); }
+  });
+  $('clear-visit').addEventListener('click', function(){
+    if(confirm('접속 기록을 모두 지울까요?')){ LS.del(KEY_VISIT); renderVisits(); renderHomeStats(); }
+  });
+  $('export-btn').addEventListener('click', function(){
+    var data = {
+      app:'gugudan', version:2, exportedAt:new Date().toISOString(),
+      history:LS.get(KEY_HISTORY, []), mistakes:LS.get(KEY_MISTAKE, {}), visits:LS.get(KEY_VISIT, {})
+    };
+    try{
+      var blob = new Blob([JSON.stringify(data, null, 2)], { type:'application/json' });
+      var url = URL.createObjectURL(blob);
+      var a = document.createElement('a');
+      a.href = url;
+      a.download = 'gugudan-backup-' + dayKey().replace(/-/g,'') + '.json';
+      document.body.appendChild(a); a.click();
+      setTimeout(function(){ document.body.removeChild(a); URL.revokeObjectURL(url); }, 300);
+    }catch(e){ alert('내보내기에 실패했어요. 브라우저를 최신 버전으로 사용해 주세요.'); }
+  });
+  $('import-btn').addEventListener('click', function(){ $('import-file').click(); });
+  $('import-file').addEventListener('change', function(ev){
+    var f = ev.target.files && ev.target.files[0];
+    if(!f) return;
+    var reader = new FileReader();
+    reader.onload = function(){
+      try{
+        var d = JSON.parse(reader.result);
+        if(!d || d.app !== 'gugudan') throw new Error('format');
+        if(!confirm('지금 기록을 백업 파일 내용으로 바꿀까요? (현재 기록은 덮어써집니다)')) return;
+        if(d.history) LS.set(KEY_HISTORY, d.history);
+        if(d.mistakes) LS.set(KEY_MISTAKE, d.mistakes);
+        if(d.visits) LS.set(KEY_VISIT, d.visits);
+        renderHistory(); renderMistakes(); renderVisits(); renderHomeStats();
+        alert('기록을 불러왔어요!');
+      }catch(e){ alert('이 파일은 구구단 놀이 기록 파일이 아니에요.'); }
+    };
+    reader.readAsText(f);
+    ev.target.value = '';
+  });
+
+  // 키보드 지원 (컴퓨터로 연습할 때)
+  document.addEventListener('keydown', function(ev){
+    if(el.game.classList.contains('hidden')) return;
+    if(ev.key >= '0' && ev.key <= '9'){ appendNum(parseInt(ev.key,10)); ev.preventDefault(); }
+    else if(ev.key === 'Backspace'){ clearNum(); ev.preventDefault(); }
+    else if(ev.key === 'Enter'){ checkAnswer(); ev.preventDefault(); }
+  });
+
+  /* ============================================================
+     15. 초기화
+     ============================================================ */
+  function refresh(){
+    S.stage = 0; S.locked = false;
+    renderStages();
+    renderHomeStats();
+    showScreen('home');
+  }
+
+  function init(){
+    migrateOldHistory();
+    registerVisit();
+    $('sound-toggle').textContent = Sound.isOn() ? '🔊' : '🔇';
+    $('sound-toggle').className = 'icon-btn' + (Sound.isOn() ? '' : ' off');
+    window.addEventListener('resize', sizeCanvas);
+    refresh();
+  }
+  init();
+
+  // 테스트용 최소 노출(브라우저 사용에는 영향 없음)
+  window.__gugudan = { refresh:refresh, S:S, checkAnswer:checkAnswer, appendNum:appendNum, startSession:startSession, startReview:startReview, nextQuestion:nextQuestion, LS:LS };
+})();
+</script>
+<script type="module" src="https://static.cloudflareinsights.com/beacon.min.js/v31edd6df95cf4e85bb4c19e7a9bdbcba1788362987495" integrity="sha512-iIg7k2xntmwu6/uSb5tpc/hySgZc4eoL31yB29W6tJFo2akwjPWcEqnCEdJvGexCL0KEQwVYv5BlowfhVz26hg==" data-cf-beacon='{"version":"2024.11.0","token":"4edd5f8ec12a48cfa682ab8261b80a79","spa":2}' crossorigin="anonymous"></script>
 </body>
 </html>
